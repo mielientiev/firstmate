@@ -1,0 +1,8 @@
+ok - the parser accepts a pull request URL on any valid GitHub host and keeps the host
+ok - the parser refuses malformed pull request URLs on every host
+ok - GitLab and Gerrit shapes keep their providers and github.com stays refused for them
+ok - the default host is github.com and overridable with FM_GITHUB_HOST
+ok - the default host never reads an exported GH_HOST, whatever its form
+ok - the host is selected for the one command and github.com is left untouched
+ok - the pull request record is read at the given host
+ok - the merge poll reads a pull request at its own host and refuses an inconsistent record

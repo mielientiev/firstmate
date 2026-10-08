@@ -1,0 +1,4 @@
+ok - reviewer candidates use API-resolved logins and unique commits
+ok - author-only evidence produces no candidate and says why
+ok - argument and lookup refusals exit nonzero
+ok - a pull request on another GitHub host is read at that host and github.com is untouched

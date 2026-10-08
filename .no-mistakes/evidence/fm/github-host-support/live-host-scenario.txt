@@ -1,0 +1,91 @@
+=================== S1: arm a PR on a self-hosted host ===================
+armed: state/task-ghe.check.sh
+--- recorded pr= and pr_head= ---
+pr=https://ghe.example.com/o/r/pull/7
+pr_head=9a7bdc484a820d73b5ef09d88b5840b691f434cf
+--- armed poll sidecar (provider,url,host,path,number) ---
+github
+https://ghe.example.com/o/r/pull/7
+ghe.example.com
+o/r
+7
+--- gh calls during arm ---
+HOST=ghe.example.com ARGS=pr view https://ghe.example.com/o/r/pull/7 --json isDraft
+HOST=ghe.example.com ARGS=pr view https://ghe.example.com/o/r/pull/7 --json headRefOid -q .headRefOid
+=================== S2: armed poll watches the self-hosted host ===================
+poll stdout: merged
+gh calls during poll:
+HOST=ghe.example.com ARGS=pr view https://ghe.example.com/o/r/pull/7 --json state -q .state
+=================== S3: fm-pr-state reads the PR at its host ===================
+fm-pr-state rc=0 (no blockers printed)
+gh calls during state read:
+HOST=ghe.example.com ARGS=pr view https://ghe.example.com/o/r/pull/7 --json state,mergedAt,isDraft,headRefOid,author,mergeable,reviewDecision --jq 
+  "state=\(.state | ascii_downcase)",
+  "merged_at=\(.mergedAt // "")",
+  "draft=\(.isDraft)",
+  "head=\(.headRefOid)",
+  "author=\(.author.login)",
+  "mergeability=\(if .mergeable == null or .mergeable == "UNKNOWN" then "unknown" else (.mergeable | ascii_downcase) end)",
+  "review_decision=\(.reviewDecision // "")"
+HOST=ghe.example.com ARGS=pr checks https://ghe.example.com/o/r/pull/7 --required --json name,state,bucket --jq 
+  .[]
+  | select(.bucket != "pass" and .bucket != "skipping")
+  | "REQUIRED CHECK: \(.name) (\(.state))"
+=================== S4: fm-pr-reviewers reads the PR at its host ===================
+alice	1 recent commit
+gh calls during reviewer lookup:
+HOST=ghe.example.com ARGS=api /repos/o/r/pulls/7 --jq "author=\(.user.login)", "base=\(.base.sha)"
+HOST=ghe.example.com ARGS=api /repos/o/r/pulls/7/files?per_page=100 --paginate --jq .[].filename
+HOST=ghe.example.com ARGS=api --method GET /repos/o/r/commits -f sha=9a7bdc484a820d73b5ef09d88b5840b691f434cf -f path=src/a.sh -F per_page=100 --jq .[] | select(.author.type != "Bot") | [.sha, (.author.login // "")] | @tsv
+=================== S5: github.com control is untouched ===================
+poll stdout: merged
+gh calls across arm+poll+state for github.com (every HOST must be unset):
+HOST=unset ARGS=pr view https://github.com/o/r/pull/8 --json isDraft
+HOST=unset ARGS=pr view https://github.com/o/r/pull/8 --json headRefOid -q .headRefOid
+HOST=unset ARGS=pr view https://github.com/o/r/pull/8 --json state -q .state
+HOST=unset ARGS=pr view https://github.com/o/r/pull/8 --json state,mergedAt,isDraft,headRefOid,author,mergeable,reviewDecision --jq 
+  "state=\(.state | ascii_downcase)",
+  "merged_at=\(.mergedAt // "")",
+  "draft=\(.isDraft)",
+  "head=\(.headRefOid)",
+  "author=\(.author.login)",
+  "mergeability=\(if .mergeable == null or .mergeable == "UNKNOWN" then "unknown" else (.mergeable | ascii_downcase) end)",
+  "review_decision=\(.reviewDecision // "")"
+HOST=unset ARGS=pr checks https://github.com/o/r/pull/8 --required --json name,state,bucket --jq 
+  .[]
+  | select(.bucket != "pass" and .bucket != "skipping")
+  | "REQUIRED CHECK: \(.name) (\(.state))"
+=================== S6: adversarial - a doctored sidecar host is never polled ===================
+doctored sidecar (host differs from URL):
+github
+https://ghe.example.com/o/r/pull/7
+git.example.org
+o/r
+7
+poll stdout: []
+gh calls during doctored poll (must be none):
+gh log line count: 0
+=================== S7: adversarial - malformed host labels are never polled ===================
+leading-hyphen: stdout=[] gh-log-lines=0
+64-char label: stdout=[] gh-log-lines=0
+=================== S8: fm-pr-merge merges a PR on the self-hosted host ===================
+armed: state/task-merge.check.sh
+verified: https://ghe.example.com/o/r/pull/9 is open and mergeable, with every unwaived required check reported and every unwaived check green at head 9a7bdc484a820d73b5ef09d88b5840b691f434cf
+verified: https://ghe.example.com/o/r/pull/9 is merged (state=MERGED, merged=true, isInMergeQueue=false)
+fm-pr-merge rc=0
+recorded identity in meta:
+pr=https://ghe.example.com/o/r/pull/9
+pr_head=9a7bdc484a820d73b5ef09d88b5840b691f434cf
+gh calls during merge:
+HOST=ghe.example.com ARGS=pr view https://ghe.example.com/o/r/pull/9 --json headRefOid -q .headRefOid
+HOST=ghe.example.com ARGS=pr view https://ghe.example.com/o/r/pull/9 --json state,isDraft,mergeable,mergeStateStatus,headRefOid,baseRefName,statusCheckRollup
+HOST=ghe.example.com ARGS=api repos/o/r/branches/main
+HOST=ghe.example.com ARGS=api --paginate repos/o/r/rules/branches/main
+HOST=ghe.example.com ARGS=pr merge 9 --repo o/r --match-head-commit 9a7bdc484a820d73b5ef09d88b5840b691f434cf --squash
+HOST=ghe.example.com ARGS=api graphql -f query=query($owner:String!,$repo:String!,$number:Int!){repository(owner:$owner,name:$repo){pullRequest(number:$number){state merged isInMergeQueue baseRefName}}} -F owner=o -F repo=r -F number=9 --jq .data.repository.pullRequest | "state=" + (.state // ""), "merged=" + (.merged | tostring), "queued=" + (.isInMergeQueue | tostring), "base=" + (.baseRefName // "")
+distinct hosts seen by every gh call: ghe.example.com 
+=================== S9: fm-pr-merge leaves github.com untouched ===================
+verified: https://github.com/o/r/pull/10 is open and mergeable, with every unwaived required check reported and every unwaived check green at head 9a7bdc484a820d73b5ef09d88b5840b691f434cf
+fm-pr-merge rc=0
+distinct hosts seen by every gh call: unset 
+merge line: HOST=unset ARGS=pr merge 10 --repo o/r --match-head-commit 9a7bdc484a820d73b5ef09d88b5840b691f434cf --squash
