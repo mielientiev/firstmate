@@ -1,0 +1,15 @@
+== S6 coverage guard under UTF-8 locale ==
+LC_ALL=C.UTF-8
+FM_TEST_COVERAGE ok total=251 parallel=24 parallel_max_ms=665545 parallel_imbalance_ms=2 parallel_unhinted=0 serial=211 serial_shards=9 serial_unhinted=9 serial_max_ms=1074843 serial_budget_ms=1200000 herdr=16
+exit=0
+LC_ALL=en_US.UTF-8
+FM_TEST_COVERAGE ok total=251 parallel=24 parallel_max_ms=665545 parallel_imbalance_ms=2 parallel_unhinted=0 serial=211 serial_shards=9 serial_unhinted=9 serial_max_ms=1074843 serial_budget_ms=1200000 herdr=16
+exit=0
+-- base commit script under C.UTF-8:
+== S6b base commit guard under en_US.UTF-8 (pre-fix) ==
+comm: file 2 is not in sorted order
+comm: input is not in sorted order
+exit=1
+== S6c base commit guard under C ==
+FM_TEST_COVERAGE ok total=250 parallel=24 parallel_max_ms=665545 parallel_imbalance_ms=2 parallel_unhinted=0 serial=210 serial_shards=9 serial_unhinted=8 serial_max_ms=1074843 serial_budget_ms=1200000 herdr=16
+exit=0

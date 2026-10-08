@@ -1,0 +1,11 @@
+== S7 default-host rule (FM_GITHUB_HOST; ambient GH_HOST never read) ==
+FM_GITHUB_HOST=                                            -> rc=0 out=github.com
+FM_GITHUB_HOST=ghe.example.com                             -> rc=0 out=ghe.example.com
+FM_GITHUB_HOST=github.com                                  -> rc=0 out=github.com
+GH_HOST=ghe.example.com                                    -> rc=0 out=github.com
+GH_HOST=GHE.example.com:8443                               -> rc=0 out=github.com
+FM_GITHUB_HOST=git.example.org GH_HOST=ghe.example.com     -> rc=0 out=git.example.org
+FM_GITHUB_HOST=GHE.example.com                             -> rc=1 out=
+FM_GITHUB_HOST=ghe.example.com:8443                        -> rc=1 out=
+FM_GITHUB_HOST=ghe.example.com/x                           -> rc=1 out=
+FM_GITHUB_HOST=ghe.example.com;id                          -> rc=1 out=

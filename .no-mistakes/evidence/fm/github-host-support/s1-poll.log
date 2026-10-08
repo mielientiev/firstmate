@@ -1,0 +1,28 @@
+== S1 poll ghe.example.com ==
+$ bash bin/fm-pr-poll.sh --validated github https://ghe.example.com/my-org/my.repo/pull/42 ghe.example.com my-org/my.repo 42
+merged
+exit=0 ; gh calls:
+    GH_HOST=ghe.example.com | gh pr view https://ghe.example.com/my-org/my.repo/pull/42 --json state -q .state
+== S1b poll github.com (untouched) ==
+$ bash bin/fm-pr-poll.sh --validated github https://github.com/o/r/pull/7 github.com o/r 7
+merged
+exit=0 ; gh calls:
+    GH_HOST=<unset> | gh pr view https://github.com/o/r/pull/7 --json state -q .state
+== S1c poll look-alike host github.com.example.org (distinct host) ==
+$ bash bin/fm-pr-poll.sh --validated github https://github.com.example.org/o/r/pull/7 github.com.example.org o/r 7
+merged
+exit=0 ; gh calls:
+    GH_HOST=github.com.example.org | gh pr view https://github.com.example.org/o/r/pull/7 --json state -q .state
+== S2 poll with tampered sidecars: uppercase host / port / url-host mismatch / trailing dot (expect silent, no gh call) ==
+$ bash bin/fm-pr-poll.sh --validated github https://GHE.example.com/o/r/pull/7 GHE.example.com o/r 7
+exit=0 ; gh calls:
+$ bash bin/fm-pr-poll.sh --validated github https://ghe.example.com:8443/o/r/pull/7 ghe.example.com:8443 o/r 7
+exit=0 ; gh calls:
+$ bash bin/fm-pr-poll.sh --validated github https://ghe.example.com/o/r/pull/7 git.example.org o/r 7
+exit=0 ; gh calls:
+$ bash bin/fm-pr-poll.sh --validated github https://ghe.example.com./o/r/pull/7 ghe.example.com. o/r 7
+exit=0 ; gh calls:
+== S1d poll open PR: silent ==
+$ bash bin/fm-pr-poll.sh --validated github https://ghe.example.com/o/r/pull/7 ghe.example.com o/r 7
+exit=0 ; gh calls:
+    GH_HOST=ghe.example.com | gh pr view https://ghe.example.com/o/r/pull/7 --json state -q .state

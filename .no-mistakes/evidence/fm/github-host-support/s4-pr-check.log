@@ -1,0 +1,55 @@
+== S4 arm task-a on ghe.example.com ==
+●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+●  WATCHER DOWN - SUPERVISION IS OFF
+●  2 task(s) in flight, but no watcher has a fresh beacon (last beat: never, grace 300s).
+●  Trust the emitted supervision protocol for this harness; do not use shell & for watcher repair.
+●  This is a supervision warning only; the guarded operation WILL still run.
+●  watcher supervision needs Stop-owned automatic recovery; inspect the hook registration and startup status before ending the turn.
+●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+fm-contributions: data directory unavailable
+contributions: observation not armed; coverage is unconfirmed
+armed: state/task-a.check.sh
+exit=0
+-- gh calls:
+GH_HOST=ghe.example.com | gh pr view https://ghe.example.com/o/r/pull/7 --json isDraft
+GH_HOST=ghe.example.com | gh pr view https://ghe.example.com/o/r/pull/7 --json headRefOid -q .headRefOid
+-- meta:
+window=firstmate:fm-task-a
+endpoint_task_id=task-a
+worktree=/tmp/ghhost-live.ZGNshT/wt
+project=/tmp/ghhost-live.ZGNshT/project
+kind=ship
+mode=no-mistakes
+pr=https://ghe.example.com/o/r/pull/7
+pr_head=1111111111111111111111111111111111111111
+-- sidecar:
+github
+https://ghe.example.com/o/r/pull/7
+ghe.example.com
+o/r
+7
+== S4b arm task-b on git.example.org same owner/repo/number ==
+WARNING: watcher still down (same stale episode; last beat: never, grace 300s) - full banner already printed this episode.
+fm-contributions: data directory unavailable
+contributions: observation not armed; coverage is unconfirmed
+armed: state/task-b.check.sh
+exit=0
+-- gh calls:
+GH_HOST=git.example.org | gh pr view https://git.example.org/o/r/pull/7 --json isDraft
+GH_HOST=git.example.org | gh pr view https://git.example.org/o/r/pull/7 --json headRefOid -q .headRefOid
+-- sidecar:
+github
+https://git.example.org/o/r/pull/7
+git.example.org
+o/r
+7
+== S4c run armed watcher check scripts ==
+task-a check output: merged
+GH_HOST=ghe.example.com | gh pr view https://ghe.example.com/o/r/pull/7 --json state -q .state
+task-b check output: merged
+GH_HOST=git.example.org | gh pr view https://git.example.org/o/r/pull/7 --json state -q .state
+== S4d arm on a draft PR at ghe.example.com is refused after reading draft at the PR's host ==
+error: https://ghe.example.com/o/r/pull/9 is a draft pull request; a draft cannot be merged, so merge monitoring would wait for an event that cannot occur - mark it ready for review and arm again, or declare a wait instead of done if the draft is deliberate
+exit=1
+GH_HOST=ghe.example.com | gh pr view https://ghe.example.com/o/r/pull/9 --json isDraft
+task-c.meta

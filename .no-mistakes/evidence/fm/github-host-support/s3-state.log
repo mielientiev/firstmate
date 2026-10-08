@@ -1,0 +1,86 @@
+== S3 fm-pr-state on ghe.example.com ==
+$ bin/fm-pr-state.sh https://ghe.example.com/my-org/my.repo/pull/42
+CHECKS: none reported yet
+exit=0 ; gh calls:
+    GH_HOST=ghe.example.com | gh pr view https://ghe.example.com/my-org/my.repo/pull/42 --json state,mergedAt,isDraft,headRefOid,author,mergeable,reviewDecision --jq 
+      "state=\(.state | ascii_downcase)",
+      "merged_at=\(.mergedAt // "")",
+      "draft=\(.isDraft)",
+      "head=\(.headRefOid)",
+      "author=\(.author.login)",
+      "mergeability=\(if .mergeable == null or .mergeable == "UNKNOWN" then "unknown" else (.mergeable | ascii_downcase) end)",
+      "review_decision=\(.reviewDecision // "")"
+    GH_HOST=ghe.example.com | gh pr checks https://ghe.example.com/my-org/my.repo/pull/42 --required --json name,state,bucket --jq 
+      .[]
+      | select(.bucket != "pass" and .bucket != "skipping")
+      | "REQUIRED CHECK: \(.name) (\(.state))"
+== S3b fm-pr-state on github.com ==
+$ bin/fm-pr-state.sh https://github.com/o/r/pull/7
+CHECKS: none reported yet
+exit=0 ; gh calls:
+    GH_HOST=<unset> | gh pr view https://github.com/o/r/pull/7 --json state,mergedAt,isDraft,headRefOid,author,mergeable,reviewDecision --jq 
+      "state=\(.state | ascii_downcase)",
+      "merged_at=\(.mergedAt // "")",
+      "draft=\(.isDraft)",
+      "head=\(.headRefOid)",
+      "author=\(.author.login)",
+      "mergeability=\(if .mergeable == null or .mergeable == "UNKNOWN" then "unknown" else (.mergeable | ascii_downcase) end)",
+      "review_decision=\(.reviewDecision // "")"
+    GH_HOST=<unset> | gh pr checks https://github.com/o/r/pull/7 --required --json name,state,bucket --jq 
+      .[]
+      | select(.bucket != "pass" and .bucket != "skipping")
+      | "REQUIRED CHECK: \(.name) (\(.state))"
+== S3c fm-pr-state github.com with ambient GH_HOST exported (github.com is left untouched => ambient stays, byte-for-byte as before) ==
+$ bin/fm-pr-state.sh https://github.com/o/r/pull/7
+CHECKS: none reported yet
+exit=0 ; gh calls:
+    GH_HOST=ghe.example.com | gh pr view https://github.com/o/r/pull/7 --json state,mergedAt,isDraft,headRefOid,author,mergeable,reviewDecision --jq 
+      "state=\(.state | ascii_downcase)",
+      "merged_at=\(.mergedAt // "")",
+      "draft=\(.isDraft)",
+      "head=\(.headRefOid)",
+      "author=\(.author.login)",
+      "mergeability=\(if .mergeable == null or .mergeable == "UNKNOWN" then "unknown" else (.mergeable | ascii_downcase) end)",
+      "review_decision=\(.reviewDecision // "")"
+    GH_HOST=ghe.example.com | gh pr checks https://github.com/o/r/pull/7 --required --json name,state,bucket --jq 
+      .[]
+      | select(.bucket != "pass" and .bucket != "skipping")
+      | "REQUIRED CHECK: \(.name) (\(.state))"
+== S3d fm-pr-state: GitLab/Gerrit-shaped URLs on github.com refused ==
+$ bin/fm-pr-state.sh https://github.com/g/p/-/merge_requests/5
+fm-pr-state: expected a GitHub pull-request URL
+exit=2 ; gh calls:
+$ bin/fm-pr-state.sh https://github.com/c/o/+/1
+fm-pr-state: expected a GitHub pull-request URL
+exit=2 ; gh calls:
+== S3e two hosts, same owner/repo/number, distinct identity ==
+$ bin/fm-pr-state.sh https://git.example.org/o/r/pull/7
+CHECKS: none reported yet
+exit=0 ; gh calls:
+    GH_HOST=git.example.org | gh pr view https://git.example.org/o/r/pull/7 --json state,mergedAt,isDraft,headRefOid,author,mergeable,reviewDecision --jq 
+      "state=\(.state | ascii_downcase)",
+      "merged_at=\(.mergedAt // "")",
+      "draft=\(.isDraft)",
+      "head=\(.headRefOid)",
+      "author=\(.author.login)",
+      "mergeability=\(if .mergeable == null or .mergeable == "UNKNOWN" then "unknown" else (.mergeable | ascii_downcase) end)",
+      "review_decision=\(.reviewDecision // "")"
+    GH_HOST=git.example.org | gh pr checks https://git.example.org/o/r/pull/7 --required --json name,state,bucket --jq 
+      .[]
+      | select(.bucket != "pass" and .bucket != "skipping")
+      | "REQUIRED CHECK: \(.name) (\(.state))"
+$ bin/fm-pr-state.sh https://ghe.example.com/o/r/pull/7
+CHECKS: none reported yet
+exit=0 ; gh calls:
+    GH_HOST=ghe.example.com | gh pr view https://ghe.example.com/o/r/pull/7 --json state,mergedAt,isDraft,headRefOid,author,mergeable,reviewDecision --jq 
+      "state=\(.state | ascii_downcase)",
+      "merged_at=\(.mergedAt // "")",
+      "draft=\(.isDraft)",
+      "head=\(.headRefOid)",
+      "author=\(.author.login)",
+      "mergeability=\(if .mergeable == null or .mergeable == "UNKNOWN" then "unknown" else (.mergeable | ascii_downcase) end)",
+      "review_decision=\(.reviewDecision // "")"
+    GH_HOST=ghe.example.com | gh pr checks https://ghe.example.com/o/r/pull/7 --required --json name,state,bucket --jq 
+      .[]
+      | select(.bucket != "pass" and .bucket != "skipping")
+      | "REQUIRED CHECK: \(.name) (\(.state))"

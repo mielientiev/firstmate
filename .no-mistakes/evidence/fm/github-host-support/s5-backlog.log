@@ -1,0 +1,21 @@
+== S5 backlog close: github.com / ghe.example.com / look-alike host / gerrit ==
+$ fm_backlog_done b2-gh --pr https://github.com/o/r/pull/7
+rc=0 
+  state: done
+  links: "pr:https://github.com/o/r/pull/7"
+  body: ""
+$ fm_backlog_done b2-ghe --pr https://ghe.example.com/o/r/pull/7
+rc=0 
+  state: done
+  links: none
+  body: "PR https://ghe.example.com/o/r/pull/7"
+$ fm_backlog_done b2-org --pr https://github.com.example.org/o/r/pull/7
+rc=0 
+  state: done
+  links: none
+  body: "PR https://github.com.example.org/o/r/pull/7"
+$ fm_backlog_done b2-ger --pr https://gerrit.example.org/c/proj/+/12
+rc=0 
+  state: done
+  links: none
+  body: "Gerrit change https://gerrit.example.org/c/proj/+/12"
