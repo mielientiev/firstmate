@@ -512,7 +512,8 @@ The captain accepted the normal provider prompt-caching strategy:
 - A byte-identical branch prefix generated once per firstmate version.
 - The same tool set in the same order on every request.
 - One shared `prompt_cache_key` per home for all branch sessions.
-  It is set in a `before_provider_request` hook, and only for providers whose requests already carry that field.
+  It is set in a `before_provider_request` hook, and only when the provider's request already carries a non-empty cache key.
+  A cache-key property that is present but undefined passes through untouched, so the hook never introduces the parameter into a request that did not send one.
 
 Main keeps its own per-session key.
 
