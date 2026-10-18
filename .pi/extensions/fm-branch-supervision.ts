@@ -1346,8 +1346,14 @@ export default function (pi: ExtensionAPI) {
               const payload = event.payload;
               // Only providers whose request already carries Pi's default
               // per-session prompt_cache_key get the shared per-home override;
-              // any other provider payload passes through untouched.
-              if (payload && typeof payload === "object" && "prompt_cache_key" in payload) {
+              // any other provider payload passes through untouched. Presence
+              // alone is not enough: pi-ai always defines the property and
+              // leaves it undefined for a provider with no cache key, so only
+              // a real, non-empty string value is rewritten.
+              const existing = payload && typeof payload === "object"
+                ? (payload as Record<string, unknown>).prompt_cache_key
+                : undefined;
+              if (typeof existing === "string" && existing.length > 0) {
                 return { ...(payload as Record<string, unknown>), prompt_cache_key: branchCacheKey };
               }
             });

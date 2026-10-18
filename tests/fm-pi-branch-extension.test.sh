@@ -721,6 +721,15 @@ if (rewriteA.prompt_cache_key !== rewriteB.prompt_cache_key) throw new Error("br
 if (rewriteA.model !== "m") throw new Error("cache-key hook dropped payload fields");
 const untouched = cacheHandler({ type: "before_provider_request", payload: { model: "m" } });
 if (untouched !== undefined) throw new Error("cache-key hook rewrote a provider payload with no prompt_cache_key");
+// pi-ai always defines the property and leaves it undefined for a provider
+// whose requests reject a cache key, so that deliberately omitted value must
+// reach the provider as undefined rather than as the shared per-home key.
+const omittedPayload = { prompt_cache_key: undefined, model: "m" };
+const omitted = cacheHandler({ type: "before_provider_request", payload: omittedPayload });
+const omittedSent = omitted !== undefined ? omitted : omittedPayload;
+if (omittedSent.prompt_cache_key !== undefined) {
+  throw new Error(`cache-key hook replaced an omitted prompt_cache_key: ${String(omittedSent.prompt_cache_key)}`);
+}
 console.log(`CACHE_KEY=${rewriteA.prompt_cache_key}`);
 
 // 4. Two-stage filter, stage 2: routine while main is idle appends with no
